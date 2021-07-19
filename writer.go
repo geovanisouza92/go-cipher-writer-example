@@ -112,7 +112,7 @@ func (w *streamWriter) Write(src []byte) (n int, err error) {
 	c := *w.m[len(src)]
 
 	w.S.XORKeyStream(c, src)
-	n, err = w.W.Write(src)
+	n, err = w.W.Write(c)
 	if n != len(src) && err == nil { // should never happen
 		err = io.ErrShortWrite
 	}

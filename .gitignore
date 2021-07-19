@@ -30,3 +30,5 @@
 .history/
 
 
+# Benchmarks
+*.txt
