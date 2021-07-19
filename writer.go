@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bufio"
 	"compress/gzip"
 	"crypto/aes"
 	"crypto/cipher"
@@ -124,4 +125,28 @@ func (w *streamWriter) Close() error {
 		return c.Close()
 	}
 	return nil
+}
+
+type bufferedStreamWriter struct {
+	wc io.WriteCloser
+	b  *bufio.Writer
+}
+
+func buffered(f streamWriterFactory) streamWriterFactory {
+	return func(s cipher.Stream, w io.Writer) io.WriteCloser {
+		wc := f(s, w)
+		b := bufio.NewWriter(w)
+		return bufferedStreamWriter{wc, b}
+	}
+}
+
+func (w bufferedStreamWriter) Write(p []byte) (n int, err error) {
+	return w.b.Write(p)
+}
+
+func (w bufferedStreamWriter) Close() error {
+	if err := w.b.Flush(); err != nil {
+		return err
+	}
+	return w.wc.Close()
 }

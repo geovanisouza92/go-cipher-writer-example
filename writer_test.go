@@ -12,56 +12,54 @@ import (
 	"testing"
 )
 
-func BenchmarkWriterClassic(b *testing.B) {
-	key := readTestKey()
-	lines := readLines()
-
-	benchmark := func(n int) func(*testing.B) {
-		return func(bb *testing.B) {
-			bb.ResetTimer()
-
-			for i := 0; i < bb.N; i++ {
-				w, _ := newWriter(io.Discard, classicStreamWriter, key)
-				for i := 0; i < n; i++ {
-					w.Write(lines.Value.([]string))
-					lines = lines.Next()
-				}
-				w.Close()
-			}
-		}
-	}
-
-	b.Run("1k", benchmark(1000))
-	b.Run("10k", benchmark(10000))
-	b.Run("100k", benchmark(100000))
-	b.Run("1m", benchmark(1000000))
-	b.Run("10m", benchmark(10000000))
+func BenchmarkWriterClassicNoBuffer(b *testing.B) {
+	b.Run("1k", benchmark(classicStreamWriter, 1000))
+	b.Run("10k", benchmark(classicStreamWriter, 10000))
+	b.Run("100k", benchmark(classicStreamWriter, 100000))
+	b.Run("1m", benchmark(classicStreamWriter, 1000000))
+	b.Run("10m", benchmark(classicStreamWriter, 10000000))
 }
 
-func BenchmarkWriterNew(b *testing.B) {
+func BenchmarkWriterClassicBufferred(b *testing.B) {
+	b.Run("1k", benchmark(buffered(classicStreamWriter), 1000))
+	b.Run("10k", benchmark(buffered(classicStreamWriter), 10000))
+	b.Run("100k", benchmark(buffered(classicStreamWriter), 100000))
+	b.Run("1m", benchmark(buffered(classicStreamWriter), 1000000))
+	b.Run("10m", benchmark(buffered(classicStreamWriter), 10000000))
+}
+
+func BenchmarkWriterNewNoBuffer(b *testing.B) {
+	b.Run("1k", benchmark(newStreamWriter, 1000))
+	b.Run("10k", benchmark(newStreamWriter, 10000))
+	b.Run("100k", benchmark(newStreamWriter, 100000))
+	b.Run("1m", benchmark(newStreamWriter, 1000000))
+	b.Run("10m", benchmark(newStreamWriter, 10000000))
+}
+
+func BenchmarkWriterNewBufferred(b *testing.B) {
+	b.Run("1k", benchmark(buffered(newStreamWriter), 1000))
+	b.Run("10k", benchmark(buffered(newStreamWriter), 10000))
+	b.Run("100k", benchmark(buffered(newStreamWriter), 100000))
+	b.Run("1m", benchmark(buffered(newStreamWriter), 1000000))
+	b.Run("10m", benchmark(buffered(newStreamWriter), 10000000))
+}
+
+func benchmark(f streamWriterFactory, n int) func(*testing.B) {
 	key := readTestKey()
 	lines := readLines()
 
-	benchmark := func(n int) func(*testing.B) {
-		return func(bb *testing.B) {
-			bb.ResetTimer()
+	return func(b *testing.B) {
+		b.ResetTimer()
 
-			for i := 0; i < bb.N; i++ {
-				w, _ := newWriter(io.Discard, newStreamWriter, key)
-				for i := 0; i < n; i++ {
-					w.Write(lines.Value.([]string))
-					lines = lines.Next()
-				}
-				w.Close()
+		for i := 0; i < b.N; i++ {
+			w, _ := newWriter(io.Discard, f, key)
+			for i := 0; i < n; i++ {
+				w.Write(lines.Value.([]string))
+				lines = lines.Next()
 			}
+			w.Close()
 		}
 	}
-
-	b.Run("1k", benchmark(1000))
-	b.Run("10k", benchmark(10000))
-	b.Run("100k", benchmark(100000))
-	b.Run("1m", benchmark(1000000))
-	b.Run("10m", benchmark(10000000))
 }
 
 func readTestKey() *rsa.PublicKey {
