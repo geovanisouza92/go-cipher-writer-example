@@ -1,5 +1,5 @@
 clean:
-	rm classic-no-buffer.txt classic-buffered.txt new-no-buffer.txt new-bufferred.txt || true
+	rm classic-no-buffer.txt classic-bufferred.txt new-no-buffer.txt new-bufferred.txt || true
 
 run:
 	for i in 1 2 3 4 5 ; do go test -benchmem -bench "^(BenchmarkWriterClassicNoBuffer)$$" >> classic-no-buffer.txt ; done

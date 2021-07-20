@@ -135,7 +135,7 @@ type bufferedStreamWriter struct {
 func buffered(f streamWriterFactory) streamWriterFactory {
 	return func(s cipher.Stream, w io.Writer) io.WriteCloser {
 		wc := f(s, w)
-		b := bufio.NewWriter(w)
+		b := bufio.NewWriter(wc)
 		return bufferedStreamWriter{wc, b}
 	}
 }
